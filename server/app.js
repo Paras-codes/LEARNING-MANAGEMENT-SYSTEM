@@ -2,6 +2,8 @@ import express from "express";
 import cors from "cors";
 import cookieparser from "cookie-parser";
 import morgan from "morgan";
+import userRouter from "./Router/userrouter.js";
+import errorMiddleware from "./middlewares/error.middleware.js";
 
 
 const app=express();
@@ -18,6 +20,7 @@ app.use(cookieparser());
 app.use(morgan('dev'));//morgan logs about the acess of path by user
 
 
+app.use("/api/user",userRouter)
 
 app.use("/ping",(req,res)=>{
     res.send("/Pong")
@@ -26,5 +29,7 @@ app.use("/ping",(req,res)=>{
 app.all('*',(req,res)=>{
      res.status(404).send(" Error 404 Page not found ")
  })
+
+ app.use(errorMiddleware)
 
 export default app
