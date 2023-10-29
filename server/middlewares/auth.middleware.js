@@ -1,5 +1,7 @@
 import AppError from "../utils/error.util.js";
 import jwt from 'jsonwebtoken';
+import {config} from "dotenv"
+config();
 
 const isLoggedIn=async(req,res,next)=>{
     const {token}=req.cookies;

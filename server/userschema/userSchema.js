@@ -22,8 +22,8 @@ const userSchema=new Schema({
         lowercase:true,
         match: [
             /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
-            'Please fill in a valid email address',
-          ], // Matches email against regex
+            'Please fill in a valid email address'
+          ] // Matches email against regex
 
      },
      password:{
@@ -68,13 +68,13 @@ userSchema.methods={
         return await jwt.sign(
             {
                 id:this._id,
-                emiail:this.email,
+                email:this.email,
                 subscription:this.subscription,
                 role:this.role
             },
             process.env.JWT_SECRET,
             {
-                expiresIN:process.env.JWT_EXPIRY
+                expiresIn:process.env.JWT_EXPIRY
             }
 
         )

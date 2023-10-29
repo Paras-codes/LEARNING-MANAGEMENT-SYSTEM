@@ -15,11 +15,13 @@ const register= async (req,res,next)=>{
    if(!fullname||!email||!password){
     return next(new AppError('allfields are required',400));
    }
+   try{
 
-   const userExist=User.findOne({email});
+   const userExist= await User.findOne({email})
    
    if(userExist){
     return next(new AppError('email already exist',400));
+    
    }
    
    const user= await User.create({
@@ -47,7 +49,10 @@ const register= async (req,res,next)=>{
     message:"user registered sucessfully",
     user
   })
-
+   }
+   catch(err){
+    return next(new AppError(err.message,400));
+   }
 
    
 }
@@ -68,7 +73,7 @@ const login = async (req,res,next)=>{
     
     
         if(!user||!user.comparePassword(password)){
-            return next(new AppError('user doesent exist',400));
+            return next(new AppError('user or password doesent exist',400));
         }
     
         const token=await user.generateJWTToken()//user ka instance already diya hua h na 
@@ -107,7 +112,7 @@ const logout =(req,res)=>{
 const getProfile=async (req,res,next)=>{
     try {
         const userId=req.user.id;
-        const user= await  User.findById({userId});
+        const user=  User.findById({userId});
         res.status(200).json({
             success:true,
             message:"user details",
@@ -115,7 +120,7 @@ const getProfile=async (req,res,next)=>{
         })
 
     } catch (error) {
-        return next(new AppError('failed to fetch profile',400))
+        return next(new AppError(error.message,400))
     }
 
 }
