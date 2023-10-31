@@ -1,5 +1,7 @@
 import User from "../userschema/userSchema.js";
 import AppError from "../utils/error.util.js";
+import cloudinary from "cloudinary"
+import fs from "fs/promises"
 
 const cookieOptions={
     maxAge: 7*24*60*60*1000,
@@ -30,11 +32,35 @@ const register= async (req,res,next)=>{
     password,
     avatar:{
         public_id:email,
-        secure_url:""
+        source_url:"https://cloudnary.com/",
     }
  })
 
- //todo  : file upload
+//  cloudnarylogic sabse ppahle cloudnary k configuration define honge
+console.log("file details  >" ,JSON.stringify(req.file));
+if(req.file){
+    try {
+       const result=await cloudinary.v2.uploader.upload(req.file.path,{
+        //configuration ki kis type m upload hoga
+        folder:"lms",//kis folder m save hoga cloudinary server
+        width:250,//width of the image 
+        height:250,//height of the image
+        gravity:'faces',//face p jyada focus karna agar crop kar bhi rahe ho to
+        crop:'fill'//crop jab karo to uska background emptyy nii hona chahiye 
+       })
+       if(result){
+        user.avatar.public_id=result.public_id;
+        user.avatar.source_url=result.secure_url;
+
+        //remove file from this server jo middle ware se upload folder m banai thi
+        fs.rm(`uploads/${req.file.filename}`)
+
+       }
+    } catch (error) {
+
+        return next(new AppError(err.message||'file not uploaded ,please try again',500));
+    }
+}
  await user.save();
   user.password=undefined;//kabhi bhi banao to yaad rakhna ki password ko hata do
 
