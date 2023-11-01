@@ -3,6 +3,7 @@ import AppError from "../utils/error.util.js";
 import cloudinary from "cloudinary"
 import fs from "fs/promises"
 
+
 const cookieOptions={
     maxAge: 7*24*60*60*1000,
     httpOnly:true,
@@ -83,6 +84,9 @@ if(req.file){
    
 }
 
+
+
+
 const login = async (req,res,next)=>{
     try {
         const {email,password}=req.body;
@@ -121,6 +125,9 @@ const login = async (req,res,next)=>{
    
 }
 
+
+
+
 const logout =(req,res)=>{
     // logout ka sabse accha method cookie ko delete kardo 
     res.cookie('token',null,{
@@ -134,6 +141,10 @@ const logout =(req,res)=>{
         
     })
 }
+
+
+
+
 
 const getProfile=async (req,res,next)=>{
     try {
@@ -151,9 +162,35 @@ const getProfile=async (req,res,next)=>{
 
 }
 
+
+const forgotpassword= async(req,res)=>{
+//    forgot ppassword flow is a two step process 
+// 1. email> validateemail> dynamictokengeneration> urlsend>  tokensave with tokenexpiry
+// 2.  gettoken > tokenvalidationfrom db >updatePassword
+
+const {email}=req.body;
+ if(!email){
+    return next(new AppError('email is required',400))
+ }
+const user= await User.findOne({email})
+ if(!user){
+    return next(new AppError('email not registered',400))
+ }
+  const resetToken=await user.generatePasswordResetToken();
+
+  await user.save()
+
+}
+
+const resetpassword= async(req,res)=>{
+
+}
+
 export {
     register,
     login,
     logout,
-    getProfile
+    getProfile,
+    forgotpassword,
+    resetpassword
 }
