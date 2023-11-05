@@ -84,7 +84,9 @@ userSchema.methods={
         return  await bcrypt.compare(plainTextPassword,this.password)
     },
     generatePasswordResetToken: async function(){
-          const resetToken= crypto.randomBytes(20).toString('hex');
+          const resetToken= crypto.randomBytes(20).toString('hex');//crpto is already instaalled in node no need to npm i
+
+          
            //hamesa databse m sensitive info encrypt karke dalo
           this.forgotPasswordToken= crypto
           .createHash('sha256')

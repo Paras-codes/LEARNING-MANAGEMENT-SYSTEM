@@ -9,7 +9,7 @@ userRouter.post("/register",upload.single("avatar"),register);
 userRouter.post("/login",login);
 userRouter.get("/logout",isLoggedIn,logout);
 userRouter.get("/me",isLoggedIn,getProfile);
-userRouter.post('/forgot-passwors',forgotpassword);
-userRouter.post('/reset-password',resetpassword)
+userRouter.post('/forgot-password',forgotpassword);
+userRouter.post('/reset-password/:resetToken',resetpassword)
 
 export default userRouter;

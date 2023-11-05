@@ -2,12 +2,13 @@ import User from "../userschema/userSchema.js";
 import AppError from "../utils/error.util.js";
 import cloudinary from "cloudinary"
 import fs from "fs/promises"
-
+import sendEmail from "../utils/sendmail.js";
+import crypto from 'crypto'
 
 const cookieOptions={
     maxAge: 7*24*60*60*1000,
     httpOnly:true,
-    secure: true
+    // secure: true
 }
 
 
@@ -163,7 +164,7 @@ const getProfile=async (req,res,next)=>{
 }
 
 
-const forgotpassword= async(req,res)=>{
+const forgotpassword= async(req,res,next)=>{
 //    forgot ppassword flow is a two step process 
 // 1. email> validateemail> dynamictokengeneration> urlsend>  tokensave with tokenexpiry
 // 2.  gettoken > tokenvalidationfrom db >updatePassword
@@ -176,14 +177,68 @@ const user= await User.findOne({email})
  if(!user){
     return next(new AppError('email not registered',400))
  }
+
+
   const resetToken=await user.generatePasswordResetToken();
 
   await user.save()
 
+    const  resetPasswordURL=`${process.env.FONTEND_URL}/reset-password/${resetToken}`
+
+    const subject ='Reset Password'
+    const message=`You can reset your password by clicking <a href=${resetPasswordURL} target="_blank">Reset your password</a>\nIf the above link does not work for some reason then copy paste this link in new tab ${resetPasswordURL}.\n If you have not requested this, kindly ignore.`;
+    console.log(resetPasswordURL);
+//agar email send hojai to badiya warna user k reeference se uske pasword token undefined jisse ki wo phirse reset k atry karpai
+    try {
+        await sendEmail(email,subject,message)
+        res.status(200).json({
+            success:true,
+            message:`Reset Password token has been send to ${email}`
+        })
+    } catch (error) {
+        user.forgotPasswordExpiry=undefined,
+        user.forgotPasswordToken=undefined;
+
+        await user.save();
+        return next(new AppError(error.message ,400))
 }
 
-const resetpassword= async(req,res)=>{
+}
 
+const resetpassword= async(req,res,next)=>{
+    const { resetToken } =req.params;
+    const { password }=req.body;
+//comparing token
+//ye isliye kiya kyuki token banate waqt apan ne encrypt karke dala tha db m 
+//so the main sycology is that we will encrpt the token with same alago and then find the user with the encrpted part if found that ok else user is not registered
+    const forgotPasswordToken=crypto
+        .createHash('sha256')
+        .update(resetToken)
+        .digest('hex');
+
+    const user=await  User.findOne({
+        forgotPasswordToken,
+        forgotPasswordExpiry:{ $gt: Date.now()}
+    })
+
+    if(!user){
+        return next(new AppError('Token is invalid or expired,please try again',400));
+
+    }
+
+    user.password=password;
+
+    // we have to modify them with the value undefined as their use is no more after updating the password 
+    user.forgotPasswordToken=undefined;
+    user.forgotPasswordExpiry=undefined;
+
+    await user.save();
+
+
+    res.status(200).json({
+        success:true,
+        message:`Your password is changed successfuly`
+    })
 }
 
 export {
