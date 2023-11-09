@@ -149,8 +149,10 @@ const logout =(req,res)=>{
 
 const getProfile=async (req,res,next)=>{
     try {
-        const userId=req.user.id;
-        const user=  User.findById({userId});
+        const _id=req.user.id;
+         
+        const user= await User.findById({_id});
+        console.log(JSON.stringify(user));
         res.status(200).json({
             success:true,
             message:"user details",
@@ -212,13 +214,13 @@ const resetpassword= async(req,res,next)=>{
 //ye isliye kiya kyuki token banate waqt apan ne encrypt karke dala tha db m 
 //so the main sycology is that we will encrpt the token with same alago and then find the user with the encrpted part if found that ok else user is not registered
     const forgotPasswordToken=crypto
-        .createHash('sha256')
+        .createHash('sha256')//hashes are not encrpt and decrypt when first encryted cant be decrypted later
         .update(resetToken)
         .digest('hex');
 
     const user=await  User.findOne({
         forgotPasswordToken,
-        forgotPasswordExpiry:{ $gt: Date.now()}
+        forgotPasswordExpiry:{ $gt: Date.now()}//very important to keep acheck on expiry
     })
 
     if(!user){
@@ -241,11 +243,98 @@ const resetpassword= async(req,res,next)=>{
     })
 }
 
+
+const changePassword=async(req,res,next)=>{
+
+
+    const {oldPassword,newPassword}=req.body;
+    const _id=req.user.id;
+
+    if(!oldPassword||!newPassword){
+        return next(new AppError('All fields are mandatory',400))
+    }
+
+    const user=await User.findById({_id}).select('+password');
+
+    if(!user){
+        return next(new AppError('user doesnot exist',400))
+}
+    const PasswordIsValid=await user.comparePassword(oldPassword);
+
+    if(!PasswordIsValid){
+        return next(new AppError('Password does,nt match',400)) 
+    }
+
+    user.password=newPassword;
+
+    await user.save();
+
+    user.password=undefined;
+
+
+    res.status(200).json({
+        success:true,
+        message:`Your password is changed successfuly`
+    })
+}
+
+
+const updateUser=async(req,res,next)=>{
+
+
+const {fullname}=req.body;
+const _id=req.user.id;
+
+const user=await User.findById({_id});
+
+if(!user){
+    return next(new AppError('user does,nt exist',400))
+}
+if(req.fullname){
+user.fullname=fullname;
+}
+if(req.file){
+   await cloudinary.v2.uploader.destroy(user.avatar.public_id) //to destroy the existed profile picture
+
+   try {
+    const result=await cloudinary.v2.uploader.upload(req.file.path,{
+     //configuration ki kis type m upload hoga
+     folder:"lms",//kis folder m save hoga cloudinary server
+     width:250,//width of the image 
+     height:250,//height of the image
+     gravity:'faces',//face p jyada focus karna agar crop kar bhi rahe ho to
+     crop:'fill'//crop jab karo to uska background emptyy nii hona chahiye 
+    })
+    if(result){
+     user.avatar.public_id=result.public_id;
+     user.avatar.source_url=result.secure_url;
+
+     //remove file from this server jo middle ware se upload folder m banai thi
+     fs.rm(`uploads/${req.file.filename}`)
+
+    }
+ } catch (error) {
+
+     return next(new AppError(err.message||'file not uploaded ,please try again',500));
+ }
+}
+ 
+await user.save();//saving the user in the database
+
+res.status(200).json({
+    success:true,
+    message:`Your Profile is Updated sucessfully`
+})
+}
+
+
 export {
     register,
     login,
     logout,
     getProfile,
     forgotpassword,
-    resetpassword
+    resetpassword,
+    changePassword,
+    updateUser
 }

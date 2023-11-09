@@ -4,6 +4,7 @@ import cookieparser from "cookie-parser";
 import morgan from "morgan";
 import userRouter from "./Router/userrouter.js";
 import errorMiddleware from "./middlewares/error.middleware.js";
+import courseRouter from "./Router/course.route.js";
 
 
 const app=express();
@@ -21,6 +22,7 @@ app.use(morgan('dev'));//morgan logs about the acess of path by user
 
 
 app.use("/api/user",userRouter)
+app.use("/api/courses",courseRouter)
 
 app.use("/ping",(req,res)=>{
     res.send("/Pong")
