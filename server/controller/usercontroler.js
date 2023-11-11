@@ -8,12 +8,12 @@ import crypto from 'crypto'
 const cookieOptions={
     maxAge: 7*24*60*60*1000,
     httpOnly:true,
-    // secure: true
+    secure: true
 }
 
 
 const register= async (req,res,next)=>{
-   const {fullname,email,password}=req.body;
+   const {fullname,email,password,role}=req.body;
    
    
    if(!fullname||!email||!password){
@@ -32,6 +32,7 @@ const register= async (req,res,next)=>{
     fullname,
     email,
     password,
+    role,
     avatar:{
         public_id:email,
         source_url:"https://cloudnary.com/",
