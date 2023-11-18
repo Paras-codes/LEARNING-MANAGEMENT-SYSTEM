@@ -35,8 +35,17 @@ const authorizedRoles = (...roles) => async(req,res,next)=>{
 }
         next();
 }
+const authorizeSubscriber=async(req,res,next)=>{
+    const subscription=req.user.subscription;
+    const role=req.user.role;
+    if(role!=="ADMIN"&&subscription.status!=='active'){
+        return next(new AppError('You are not subscribed',401));
+    }
+    next();
+    }
 
 export{
     isLoggedIn,
-    authorizedRoles
+    authorizedRoles,
+    authorizeSubscriber
 }

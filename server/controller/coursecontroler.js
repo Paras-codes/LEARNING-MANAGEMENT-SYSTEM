@@ -219,6 +219,38 @@ const addLectureToCourseById = async(req,res,next)=>{
    
 }
 
+const deleteLexctureById= async(req,res,next)=>{
+    try {
+      const course_id=req.params.id;
+      const lecture_id=req.body;
+
+      const course= await Course.findById(course_id);
+
+      if(!course){
+        return next(new AppError( "course doesn't exist by this id ",400)) 
+
+      }
+
+      const lecture=course.lectures.find((ele)=>ele.id===lecture_id)
+
+    const index=course.lectures.indexOf(lecture);
+    course.lectures.splice(index,1);
+    
+    await course.save();
+      
+    res.status(200).json({
+        success:true,
+        messege:'lectures deleted from course  sucessfully',
+        course
+    })
+
+        
+    } catch (err) {
+        return next(new AppError(err.message,400)) 
+   
+    }
+}
+
 export {
     getAllCourses,
     getCoursesById,

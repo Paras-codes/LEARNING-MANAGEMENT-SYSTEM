@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { addLectureToCourseById, createCourse, getAllCourses, getCoursesById, removeCourse, updateCourse } from "../controller/coursecontroler.js";
-import { authorizedRoles, isLoggedIn } from "../middlewares/auth.middleware.js";
+import { authorizeSubscriber, authorizedRoles, isLoggedIn } from "../middlewares/auth.middleware.js";
 import upload from "../middlewares/multer,middleware.js";
 
 const courseRouter=Router();
@@ -14,7 +14,7 @@ courseRouter.route('/')
 
 
 courseRouter.route('/:id')
-.get(isLoggedIn,getCoursesById)
+.get(isLoggedIn,authorizeSubscriber,getCoursesById)
 //dono m kuch reference to lagega na update ya deletion k liye
 .put(isLoggedIn,
     authorizedRoles("ADMIN"),
