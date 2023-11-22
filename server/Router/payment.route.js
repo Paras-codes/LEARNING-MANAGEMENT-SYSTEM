@@ -15,7 +15,7 @@ const router=Router();
 
 
 router
-    .route("/rrazorPay-key")
+    .route("/razorPay-key")
     .get(isLoggedIn,razorpayApikey)
 
 router
