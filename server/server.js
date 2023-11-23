@@ -3,6 +3,7 @@ config()
 import app from "./app.js";
 import connectTodB from "./config/db.js";
 import cloudinary from "cloudinary";
+import AppError from "./utils/error.util.js";
 
 // const nodemon=require("nodemon")
 
@@ -15,6 +16,12 @@ cloudinary.v2.config({
 })
 
 app.listen(Port,async ()=>{
+    try{
      await connectTodB()
     console.log(`server is running at http:/localhost:${Port} `);
+    }
+    catch(err){
+        return next(new AppError(err.message,400));
+
+    }
 })

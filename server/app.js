@@ -32,8 +32,8 @@ app.use("/api/user",userRouter)
 app.use("/api/courses",courseRouter)
 app.use("/api/payments",paymentRouter);
 
-app.use("/ping",(req,res)=>{
-    res.send("/Pong")
+app.use("/HOME",(req,res)=>{
+    res.send("GREAT TO SEE YOU")
 })
 
 app.all('*',(req,res)=>{
